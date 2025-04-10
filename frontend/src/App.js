@@ -74,6 +74,9 @@ function App() {
     }
   };
 
+  // Additional states
+  const [scoreAnimation, setScoreAnimation] = useState(false);
+  
   // Game Loop
   useEffect(() => {
     if (gameState !== 'PLAYING') return;
@@ -117,6 +120,8 @@ function App() {
         newSnake.pop(); // Remove tail if not eating
       } else {
         setScore(prevScore => prevScore + 1);
+        setScoreAnimation(true);
+        setTimeout(() => setScoreAnimation(false), 300);
         generateFood();
       }
       
