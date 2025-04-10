@@ -291,7 +291,7 @@ function App() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="nokia-score-bar">SCORE: {score}</div>
+      <div className={`nokia-score-bar ${scoreAnimation ? 'score-animation' : ''}`}>SCORE: {score}</div>
       <div 
         className="nokia-grid"
         style={{
