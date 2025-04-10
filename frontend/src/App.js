@@ -55,9 +55,11 @@ function App() {
 
   // Generate random food position
   const generateFood = () => {
+    // Create a buffer to keep food away from walls
+    const bufferFromWall = 1;
     const newFood = {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE)
+      x: Math.floor(Math.random() * (GRID_SIZE - 2 * bufferFromWall)) + bufferFromWall,
+      y: Math.floor(Math.random() * (GRID_SIZE - 2 * bufferFromWall)) + bufferFromWall
     };
     
     // Check if food is not on snake
