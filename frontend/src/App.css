@@ -90,6 +90,13 @@ body {
 .nokia-score-bar {
   align-self: flex-start;
   margin-bottom: 10px;
+  transition: transform 0.1s ease-in-out, color 0.2s ease-in-out;
+}
+
+.score-animation {
+  transform: scale(1.2);
+  color: #0a2a0a;
+  font-weight: bold;
 }
 
 .nokia-button {
