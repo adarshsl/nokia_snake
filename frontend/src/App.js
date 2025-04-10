@@ -8,9 +8,9 @@ const CELL_SIZE = 20;
 const INITIAL_SNAKE = [{ x: 7, y: 7 }];
 const INITIAL_DIRECTION = 'RIGHT';
 const INITIAL_SPEED = {
-  BASIC: 150,
-  MODERATE: 100,
-  ADVANCED: 70
+  BASIC: 180,    // Slower for beginners
+  MODERATE: 120, // Medium speed
+  ADVANCED: 70   // Fast, challenging speed
 };
 
 function App() {
