@@ -190,10 +190,11 @@ button:active {
 
 /* Mobile Controls */
 .mobile-controls {
-  display: none;
   width: 100%;
   max-width: 240px;
   margin-top: 15px;
+  position: relative;
+  z-index: 20; /* Ensure controls are above game board */
 }
 
 .control-row {
@@ -216,18 +217,14 @@ button:active {
   margin: 0 5px;
   user-select: none;
   touch-action: manipulation;
+  cursor: pointer;
+  position: relative;
+  z-index: 30; /* Ensure buttons are clickable */
 }
 
 .control-button:active {
   background-color: #186018;
   transform: scale(0.95);
-}
-
-/* Show mobile controls on touch devices */
-@media (pointer: coarse) {
-  .mobile-controls {
-    display: block;
-  }
 }
 
 /* Responsive styling */
