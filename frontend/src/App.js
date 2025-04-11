@@ -106,7 +106,7 @@ function App() {
       
       // Check for collisions
       const hitWall = head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE;
-      const hitSelf = snake.some(segment => segment.x === head.x && segment.y === head.y);
+      const hitSelf = snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y);
       
       if (hitWall || hitSelf) {
         setGameState('GAME_OVER');
