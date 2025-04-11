@@ -136,36 +136,31 @@ function App() {
       if (eating) {
         console.log("FOOD EATEN! At position:", food);
         // Don't remove tail (snake grows)
-        setScore(prevScore => {
-          console.log("Incrementing score from", prevScore, "to", prevScore + 1);
-          return prevScore + 1;
-        });
+        setScore(score + 1);
         setScoreAnimation(true);
         setTimeout(() => setScoreAnimation(false), 300);
         
         // Generate new food immediately
-        setTimeout(() => {
-          // Create a list of positions not occupied by snake to place food
-          const availablePositions = [];
-          for (let y = 0; y < GRID_SIZE; y++) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-              const isOnSnake = newSnake.some(
-                segment => segment.x === x && segment.y === y
-              );
-              if (!isOnSnake) {
-                availablePositions.push({ x, y });
-              }
+        // Create a list of positions not occupied by snake to place food
+        const availablePositions = [];
+        for (let y = 0; y < GRID_SIZE; y++) {
+          for (let x = 0; x < GRID_SIZE; x++) {
+            const isOnSnake = newSnake.some(
+              segment => segment.x === x && segment.y === y
+            );
+            if (!isOnSnake) {
+              availablePositions.push({ x, y });
             }
           }
-          
-          // Randomly select a position for food
-          if (availablePositions.length > 0) {
-            const randomIndex = Math.floor(Math.random() * availablePositions.length);
-            const newFood = availablePositions[randomIndex];
-            console.log("Setting new food at:", newFood);
-            setFood(newFood);
-          }
-        }, 10);
+        }
+        
+        // Randomly select a position for food
+        if (availablePositions.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availablePositions.length);
+          const newFood = availablePositions[randomIndex];
+          console.log("Setting new food at:", newFood);
+          setFood(newFood);
+        }
       } else {
         // Remove tail if not eating
         newSnake.pop();
