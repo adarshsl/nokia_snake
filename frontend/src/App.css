@@ -138,20 +138,23 @@ body {
 }
 
 .snake-head {
-  background-color: #0F380F; /* Dark green for snake head */
-  border: 1px solid #0A290A;
+  background-color: #000000; /* Black for snake head */
+  border: 2px solid #ffffff;
   border-radius: 2px;
+  z-index: 3;
 }
 
 .snake-body {
   background-color: #306230; /* Medium green for snake body */
   border: 1px solid #0A290A;
+  z-index: 2;
 }
 
 .food {
-  background-color: #0F380F; /* Dark green for food */
+  background-color: #000000; /* Black for food */
   border-radius: 50%;
-  border: 1px solid #0A290A;
+  border: 1px solid #ffffff;
+  z-index: 1;
 }
 
 /* Game screens specific styling */
