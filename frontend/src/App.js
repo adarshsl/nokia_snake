@@ -54,37 +54,36 @@ function App() {
     }
     
     // Place initial food (ensure it's not on the snake)
-    placeFood();
+    const initialFood = { x: 5, y: 5 }; // Always start with food at this position for consistency
+    setFood(initialFood);
     
     // Start the game
     setGameState('PLAYING');
   };
 
-  // Generate food in a position not occupied by the snake
+  // Place food at a random position not occupied by the snake
   const placeFood = () => {
-    // Create a grid of all positions
-    const positions = [];
+    const availablePositions = [];
+    
+    // Find all positions not occupied by the snake
     for (let y = 0; y < GRID_SIZE; y++) {
       for (let x = 0; x < GRID_SIZE; x++) {
-        positions.push({ x, y });
+        // Check if this position is on the snake
+        const isOnSnake = snake.some(segment => segment.x === x && segment.y === y);
+        if (!isOnSnake) {
+          availablePositions.push({ x, y });
+        }
       }
     }
     
-    // Filter out positions occupied by the snake
-    const availablePositions = positions.filter(pos => {
-      return !snake.some(segment => segment.x === pos.x && segment.y === pos.y);
-    });
-    
-    // If there are available positions, place food in a random one
+    // If there are available positions, randomly select one
     if (availablePositions.length > 0) {
       const randomIndex = Math.floor(Math.random() * availablePositions.length);
       const newFoodPosition = availablePositions[randomIndex];
-      
-      // Set the new food position
       setFood(newFoodPosition);
-      console.log('Food placed at:', newFoodPosition);
     } else {
-      // If no positions are available (snake fills the grid), end the game
+      // If no positions are available (snake fills the grid), the player wins!
+      // For simplicity, we'll just end the game
       setGameState('GAME_OVER');
     }
   };
@@ -94,81 +93,87 @@ function App() {
     if (gameState !== 'PLAYING') return;
     
     const moveSnake = () => {
-      setSnake(prevSnake => {
-        // Get current head
-        const head = { ...prevSnake[0] };
-        
-        // Create new head based on direction
-        let newHead = { ...head };
-        
-        switch (direction) {
-          case 'UP':
-            newHead.y -= 1;
-            break;
-          case 'DOWN':
-            newHead.y += 1;
-            break;
-          case 'LEFT':
-            newHead.x -= 1;
-            break;
-          case 'RIGHT':
-            newHead.x += 1;
-            break;
-          default:
-            break;
-        }
-        
-        // Save last movement
-        setLastMovement(direction);
-        
-        // Check for wall collision
-        if (
-          newHead.x < 0 || 
-          newHead.x >= GRID_SIZE || 
-          newHead.y < 0 || 
-          newHead.y >= GRID_SIZE
-        ) {
+      // Get the current snake and head
+      const currentSnake = [...snake];
+      const head = { ...currentSnake[0] };
+      
+      // Create a new head based on direction
+      let newHead;
+      switch (direction) {
+        case 'UP':
+          newHead = { x: head.x, y: head.y - 1 };
+          break;
+        case 'DOWN':
+          newHead = { x: head.x, y: head.y + 1 };
+          break;
+        case 'LEFT':
+          newHead = { x: head.x - 1, y: head.y };
+          break;
+        case 'RIGHT':
+          newHead = { x: head.x + 1, y: head.y };
+          break;
+        default:
+          return; // Invalid direction
+      }
+      
+      // Track last movement direction
+      setLastMovement(direction);
+      
+      // Check for wall collision
+      if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
+        console.log('Wall collision detected');
+        setGameState('GAME_OVER');
+        return;
+      }
+      
+      // Check for self collision (only with body parts after the head)
+      for (let i = 1; i < currentSnake.length; i++) {
+        if (newHead.x === currentSnake[i].x && newHead.y === currentSnake[i].y) {
+          console.log('Self collision detected');
           setGameState('GAME_OVER');
-          return prevSnake; // Return unchanged snake
+          return;
         }
+      }
+      
+      // Create a new snake array with the new head
+      const newSnake = [newHead, ...currentSnake];
+      
+      // Check if the snake eats food
+      const eatingFood = newHead.x === food.x && newHead.y === food.y;
+      
+      if (eatingFood) {
+        // Snake eats food - don't remove the tail so the snake grows
+        console.log('Food eaten at position:', food);
         
-        // Check for self collision
-        for (let i = 1; i < prevSnake.length; i++) {
-          if (newHead.x === prevSnake[i].x && newHead.y === prevSnake[i].y) {
-            setGameState('GAME_OVER');
-            return prevSnake; // Return unchanged snake
-          }
-        }
+        // Increment score
+        setScore(prevScore => {
+          const newScore = prevScore + 1;
+          console.log('Score increased:', prevScore, '->', newScore);
+          return newScore;
+        });
         
-        // Create new snake by adding new head
-        const newSnake = [newHead, ...prevSnake];
+        // Trigger score animation
+        setScoreAnimation(true);
+        setTimeout(() => setScoreAnimation(false), 300);
         
-        // Check if snake eats food
-        if (newHead.x === food.x && newHead.y === food.y) {
-          // Don't remove tail (snake grows)
-          console.log('Food eaten! Score:', score, '-> ', score + 1);
-          setScore(prevScore => prevScore + 1);
-          setScoreAnimation(true);
-          setTimeout(() => setScoreAnimation(false), 300);
-          
-          // Place new food
-          setTimeout(() => placeFood(), 10);
-          
-          return newSnake;
-        } else {
-          // Remove tail if not eating
-          newSnake.pop();
-          return newSnake;
-        }
-      });
+        // Generate new food
+        setTimeout(() => placeFood(), 10);
+      } else {
+        // Snake didn't eat food - remove the tail
+        newSnake.pop();
+      }
+      
+      // Update the snake state
+      setSnake(newSnake);
     };
     
-    // Set up game loop
-    gameLoopRef.current = setInterval(moveSnake, speed);
+    // Set up the game loop interval
+    const intervalId = setInterval(moveSnake, speed);
+    gameLoopRef.current = intervalId;
     
-    // Clean up interval on unmount
-    return () => clearInterval(gameLoopRef.current);
-  }, [gameState, direction, food, speed, score]);
+    // Clean up the interval when the component unmounts or dependencies change
+    return () => clearInterval(intervalId);
+  }, [gameState, direction, snake, food, speed]);
   
   // Keyboard Controls
   useEffect(() => {
@@ -252,7 +257,7 @@ function App() {
         // Check if cell is part of snake
         const isSnakePart = snake.some(segment => segment.x === x && segment.y === y);
         const isHead = snake[0]?.x === x && snake[0]?.y === y;
-        const isFood = food.x === x && food.y === y;
+        const isFood = food?.x === x && food?.y === y;
         
         if (isHead) {
           cellClass += " snake-head";
