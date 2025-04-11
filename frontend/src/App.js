@@ -234,11 +234,7 @@ function App() {
           )}
           
           {gameActive && (
-            <div 
-              className="game-screen"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
+            <div className="game-screen">
               <div className={`score ${scoreAnimation ? 'score-animated' : ''}`}>
                 Score: {score}
               </div>
@@ -250,56 +246,6 @@ function App() {
                 }}
               >
                 {renderGrid()}
-              </div>
-              
-              {/* Mobile Control Buttons */}
-              <div className="mobile-controls">
-                <div className="control-row">
-                  <button 
-                    className="control-button"
-                    onClick={() => {
-                      if (direction !== DIRECTIONS.DOWN) {
-                        setDirection(DIRECTIONS.UP);
-                      }
-                    }}
-                  >
-                    ↑
-                  </button>
-                </div>
-                <div className="control-row">
-                  <button 
-                    className="control-button"
-                    onClick={() => {
-                      if (direction !== DIRECTIONS.RIGHT) {
-                        setDirection(DIRECTIONS.LEFT);
-                      }
-                    }}
-                  >
-                    ←
-                  </button>
-                  <button 
-                    className="control-button"
-                    onClick={() => {
-                      if (direction !== DIRECTIONS.LEFT) {
-                        setDirection(DIRECTIONS.RIGHT);
-                      }
-                    }}
-                  >
-                    →
-                  </button>
-                </div>
-                <div className="control-row">
-                  <button 
-                    className="control-button"
-                    onClick={() => {
-                      if (direction !== DIRECTIONS.UP) {
-                        setDirection(DIRECTIONS.DOWN);
-                      }
-                    }}
-                  >
-                    ↓
-                  </button>
-                </div>
               </div>
             </div>
           )}
