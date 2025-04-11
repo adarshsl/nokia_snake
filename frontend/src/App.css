@@ -107,6 +107,12 @@ body {
   color: #0F380F;
   align-self: flex-start;
   margin-bottom: 10px;
+  transition: transform 0.1s ease-in-out, color 0.2s ease-in-out;
+}
+
+.score-animated {
+  transform: scale(1.2);
+  color: #000000;
 }
 
 .game-board {
