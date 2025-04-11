@@ -58,22 +58,10 @@ function App() {
 
   // Generate random food position
   const generateFood = () => {
-    const newFood = {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE)
-    };
-    
-    // Check if food would spawn on snake
-    const onSnake = snake.some(segment => 
-      segment.x === newFood.x && segment.y === newFood.y
-    );
-    
-    if (onSnake) {
-      // Try again with recursion (will create a new random position)
-      generateFood();
-    } else {
-      setFood(newFood);
-    }
+    // Let's set the food to a fixed position for debugging
+    const fixedFood = { x: 8, y: 7 };
+    console.log("Setting fixed food at:", fixedFood);
+    setFood(fixedFood);
   };
   
   // Game Loop
