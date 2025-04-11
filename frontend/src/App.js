@@ -31,6 +31,8 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [speed, setSpeed] = useState(SPEEDS.EASY);
   const [score, setScore] = useState(0);
+  const [scoreAnimation, setScoreAnimation] = useState(false);
+  const touchStartRef = React.useRef({ x: 0, y: 0 });
   
   // Generate random food position
   const generateFood = () => {
