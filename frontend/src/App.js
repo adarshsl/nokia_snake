@@ -10,7 +10,7 @@ const INITIAL_DIRECTION = 'RIGHT';
 const INITIAL_SPEED = {
   BASIC: 300,    // Much slower for beginners
   MODERATE: 200, // Medium speed
-  ADVANCED: 100  // Fast, challenging speed
+  ADVANCED: 180  // Fast but not too fast
 };
 
 function App() {
