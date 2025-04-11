@@ -149,26 +149,7 @@ function App() {
         setTimeout(() => setScoreAnimation(false), 300);
         
         // Generate new food immediately
-        // Create a list of positions not occupied by snake to place food
-        const availablePositions = [];
-        for (let y = 0; y < GRID_SIZE; y++) {
-          for (let x = 0; x < GRID_SIZE; x++) {
-            const isOnSnake = newSnake.some(
-              segment => segment.x === x && segment.y === y
-            );
-            if (!isOnSnake) {
-              availablePositions.push({ x, y });
-            }
-          }
-        }
-        
-        // Randomly select a position for food
-        if (availablePositions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availablePositions.length);
-          const newFood = availablePositions[randomIndex];
-          console.log("Setting new food at:", newFood);
-          setFood(newFood);
-        }
+        generateFood();
       } else {
         // Remove tail if not eating
         newSnake.pop();
