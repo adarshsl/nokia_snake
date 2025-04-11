@@ -129,13 +129,19 @@ function App() {
       
       // Check if snake eats food
       const eating = head.x === food.x && head.y === food.y;
+      console.log("Head:", head, "Food:", food, "Eating:", eating);
       
       // Create new snake
       const newSnake = [head, ...snake];
       if (!eating) {
         newSnake.pop(); // Remove tail if not eating
       } else {
-        setScore(prevScore => prevScore + 1);
+        console.log("Score before increment:", score);
+        setScore(prevScore => {
+          const newScore = prevScore + 1;
+          console.log("Score after increment:", newScore);
+          return newScore;
+        });
         setScoreAnimation(true);
         setTimeout(() => setScoreAnimation(false), 300);
         generateFood();
