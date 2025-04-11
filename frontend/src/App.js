@@ -59,20 +59,27 @@ function App() {
     const min = 0;
     const max = GRID_SIZE - 1;
     
-    const newFood = {
-      x: Math.floor(Math.random() * (max - min + 1)) + min,
-      y: Math.floor(Math.random() * (max - min + 1)) + min
-    };
+    // Find all available cells (not occupied by snake)
+    const availableCells = [];
     
-    // Check if food is not on snake
-    const isOnSnake = snake.some(segment => 
-      segment.x === newFood.x && segment.y === newFood.y
-    );
+    for (let y = min; y <= max; y++) {
+      for (let x = min; x <= max; x++) {
+        // Check if this position is not occupied by the snake
+        const isOccupied = snake.some(segment => segment.x === x && segment.y === y);
+        
+        if (!isOccupied) {
+          availableCells.push({ x, y });
+        }
+      }
+    }
     
-    if (isOnSnake) {
-      generateFood(); // Try again
+    // If there are available cells, randomly pick one
+    if (availableCells.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availableCells.length);
+      setFood(availableCells[randomIndex]);
     } else {
-      setFood(newFood);
+      // Game is won! Snake fills the entire grid
+      setGameState('GAME_OVER');
     }
   };
 
