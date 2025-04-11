@@ -289,6 +289,40 @@ function App() {
               >
                 {renderGrid()}
               </div>
+              
+              {/* Mobile Control Buttons */}
+              <div className="mobile-controls">
+                <div className="control-row">
+                  <div 
+                    className="control-button"
+                    onClick={() => direction !== DIRECTIONS.DOWN && setDirection(DIRECTIONS.UP)}
+                  >
+                    ↑
+                  </div>
+                </div>
+                <div className="control-row">
+                  <div 
+                    className="control-button"
+                    onClick={() => direction !== DIRECTIONS.RIGHT && setDirection(DIRECTIONS.LEFT)}
+                  >
+                    ←
+                  </div>
+                  <div 
+                    className="control-button"
+                    onClick={() => direction !== DIRECTIONS.LEFT && setDirection(DIRECTIONS.RIGHT)}
+                  >
+                    →
+                  </div>
+                </div>
+                <div className="control-row">
+                  <div 
+                    className="control-button"
+                    onClick={() => direction !== DIRECTIONS.UP && setDirection(DIRECTIONS.DOWN)}
+                  >
+                    ↓
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           
