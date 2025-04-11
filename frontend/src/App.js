@@ -1,75 +1,142 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
+// Game constants
 const GRID_SIZE = 15;
 const CELL_SIZE = 20;
+const INITIAL_SNAKE = [
+  { x: 7, y: 7 },
+  { x: 6, y: 7 }
+];
+const INITIAL_FOOD = { x: 10, y: 10 };
 const DIRECTIONS = {
   UP: { x: 0, y: -1 },
   DOWN: { x: 0, y: 1 },
   LEFT: { x: -1, y: 0 },
   RIGHT: { x: 1, y: 0 }
 };
-
-const SPEED_LEVELS = {
-  BASIC: 300,
-  MODERATE: 200,
-  ADVANCED: 150
+const SPEEDS = {
+  EASY: 200,
+  MEDIUM: 150,
+  HARD: 100
 };
 
 function App() {
   // Game state
-  const [grid, setGrid] = useState(createEmptyGrid());
-  const [snake, setSnake] = useState([{ x: 7, y: 7 }]);
-  const [food, setFood] = useState({ x: 5, y: 5 });
+  const [snake, setSnake] = useState(INITIAL_SNAKE);
+  const [food, setFood] = useState(INITIAL_FOOD);
   const [direction, setDirection] = useState(DIRECTIONS.RIGHT);
+  const [gameActive, setGameActive] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameSpeed, setGameSpeed] = useState(SPEED_LEVELS.BASIC);
+  const [speed, setSpeed] = useState(SPEEDS.EASY);
   const [score, setScore] = useState(0);
-  const [scoreAnimation, setScoreAnimation] = useState(false);
   
-  // Create an empty grid
-  function createEmptyGrid() {
-    const grid = [];
-    for (let y = 0; y < GRID_SIZE; y++) {
-      const row = [];
-      for (let x = 0; x < GRID_SIZE; x++) {
-        row.push('empty');
-      }
-      grid.push(row);
-    }
-    return grid;
-  }
-  
-  // Place food at a random position
-  const placeFood = useCallback(() => {
-    const availablePositions = [];
+  // Generate random food position
+  const generateFood = () => {
+    let newFood;
+    let foodOnSnake = true;
     
-    // Find all empty cells
-    for (let y = 0; y < GRID_SIZE; y++) {
-      for (let x = 0; x < GRID_SIZE; x++) {
-        if (grid[y][x] === 'empty') {
-          availablePositions.push({ x, y });
-        }
-      }
+    while (foodOnSnake) {
+      newFood = {
+        x: Math.floor(Math.random() * GRID_SIZE),
+        y: Math.floor(Math.random() * GRID_SIZE)
+      };
+      
+      foodOnSnake = snake.some(
+        segment => segment.x === newFood.x && segment.y === newFood.y
+      );
     }
     
-    // If no available positions, do nothing
-    if (availablePositions.length === 0) return;
-    
-    // Pick a random position
-    const randomIndex = Math.floor(Math.random() * availablePositions.length);
-    const newFood = availablePositions[randomIndex];
-    
-    // Update food position
     setFood(newFood);
-  }, [grid]);
+  };
   
-  // Handle key press
+  // Move snake
+  const moveSnake = () => {
+    const newSnake = [...snake];
+    const head = { ...newSnake[0] };
+    
+    // Calculate new head position
+    head.x += direction.x;
+    head.y += direction.y;
+    
+    // Check for collisions
+    if (checkCollision(head)) {
+      endGame();
+      return;
+    }
+    
+    // Add new head
+    newSnake.unshift(head);
+    
+    // Check if food is eaten
+    if (head.x === food.x && head.y === food.y) {
+      // Increase score
+      setScore(prevScore => prevScore + 1);
+      
+      // Generate new food
+      generateFood();
+    } else {
+      // Remove tail
+      newSnake.pop();
+    }
+    
+    // Update snake
+    setSnake(newSnake);
+  };
+  
+  // Check for collisions with walls or self
+  const checkCollision = (head) => {
+    // Check wall collision
+    if (
+      head.x < 0 || 
+      head.x >= GRID_SIZE || 
+      head.y < 0 || 
+      head.y >= GRID_SIZE
+    ) {
+      return true;
+    }
+    
+    // Check self collision (excluding the tail which will be removed)
+    for (let i = 0; i < snake.length - 1; i++) {
+      if (snake[i].x === head.x && snake[i].y === head.y) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+  
+  // End the game
+  const endGame = () => {
+    setGameActive(false);
+    setGameOver(true);
+  };
+  
+  // Start a new game
+  const startGame = (selectedSpeed) => {
+    setSnake(INITIAL_SNAKE);
+    setDirection(DIRECTIONS.RIGHT);
+    setSpeed(selectedSpeed);
+    setScore(0);
+    setGameOver(false);
+    setGameActive(true);
+    generateFood();
+  };
+  
+  // Game loop
   useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (!gameStarted || gameOver) return;
+    if (!gameActive) return;
+    
+    const gameLoop = setInterval(moveSnake, speed);
+    
+    return () => clearInterval(gameLoop);
+  }, [gameActive, snake, direction, food, speed]);
+  
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!gameActive) return;
       
       switch (e.key) {
         case 'ArrowUp':
@@ -97,119 +164,44 @@ function App() {
       }
     };
     
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [direction, gameStarted, gameOver]);
-  
-  // Game loop
-  useEffect(() => {
-    if (!gameStarted || gameOver) return;
+    window.addEventListener('keydown', handleKeyDown);
     
-    const updateGame = () => {
-      setSnake(prevSnake => {
-        // Create a copy of the current snake
-        const newSnake = [...prevSnake];
-        const head = { ...newSnake[0] };
-        
-        // Calculate new head position
-        const newHead = {
-          x: head.x + direction.x,
-          y: head.y + direction.y
-        };
-        
-        // Check if out of bounds
-        if (
-          newHead.x < 0 || 
-          newHead.x >= GRID_SIZE || 
-          newHead.y < 0 || 
-          newHead.y >= GRID_SIZE
-        ) {
-          setGameOver(true);
-          return prevSnake;
-        }
-        
-        // Check if hit itself
-        for (let i = 1; i < newSnake.length; i++) {
-          if (newSnake[i].x === newHead.x && newSnake[i].y === newHead.y) {
-            setGameOver(true);
-            return prevSnake;
-          }
-        }
-        
-        // Add new head to snake
-        newSnake.unshift(newHead);
-        
-        // Check if food is eaten
-        if (newHead.x === food.x && newHead.y === food.y) {
-          // Increase score
-          setScore(prevScore => prevScore + 1);
-          setScoreAnimation(true);
-          setTimeout(() => setScoreAnimation(false), 300);
-          
-          // Place new food
-          setTimeout(() => placeFood(), 0);
-        } else {
-          // Remove tail if food not eaten
-          newSnake.pop();
-        }
-        
-        return newSnake;
-      });
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
     };
-    
-    // Set up game loop
-    const gameLoop = setInterval(updateGame, gameSpeed);
-    return () => clearInterval(gameLoop);
-  }, [direction, food, gameStarted, gameOver, gameSpeed, placeFood]);
+  }, [gameActive, direction]);
   
-  // Update grid when snake or food changes
-  useEffect(() => {
-    // Create a new empty grid
-    const newGrid = createEmptyGrid();
-    
-    // Add snake to grid
-    snake.forEach((segment, index) => {
-      if (segment.y >= 0 && segment.y < GRID_SIZE && segment.x >= 0 && segment.x < GRID_SIZE) {
-        newGrid[segment.y][segment.x] = index === 0 ? 'snake-head' : 'snake-body';
-      }
-    });
-    
-    // Add food to grid
-    if (food && food.y >= 0 && food.y < GRID_SIZE && food.x >= 0 && food.x < GRID_SIZE) {
-      newGrid[food.y][food.x] = 'food';
-    }
-    
-    // Update grid
-    setGrid(newGrid);
-  }, [snake, food]);
-  
-  // Start a new game
-  const startGame = (speed) => {
-    setGrid(createEmptyGrid());
-    setSnake([{ x: 7, y: 7 }]);
-    setFood({ x: 5, y: 5 });
-    setDirection(DIRECTIONS.RIGHT);
-    setGameOver(false);
-    setGameStarted(true);
-    setGameSpeed(speed);
-    setScore(0);
-  };
-  
-  // Render game grid
+  // Render game grid cells
   const renderGrid = () => {
     const cells = [];
     
     for (let y = 0; y < GRID_SIZE; y++) {
       for (let x = 0; x < GRID_SIZE; x++) {
+        // Determine cell type
+        let cellType = 'cell';
+        
+        // Check if cell is part of snake
+        const isHead = snake[0].x === x && snake[0].y === y;
+        const isBody = snake.slice(1).some(segment => segment.x === x && segment.y === y);
+        const isFood = food.x === x && food.y === y;
+        
+        if (isHead) {
+          cellType = 'cell snake-head';
+        } else if (isBody) {
+          cellType = 'cell snake-body';
+        } else if (isFood) {
+          cellType = 'cell food';
+        }
+        
         cells.push(
           <div
             key={`${x}-${y}`}
-            className={`nokia-cell ${grid[y][x]}`}
+            className={cellType}
             style={{
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              left: x * CELL_SIZE,
-              top: y * CELL_SIZE
+              left: x * CELL_SIZE + 'px',
+              top: y * CELL_SIZE + 'px',
+              width: CELL_SIZE + 'px',
+              height: CELL_SIZE + 'px'
             }}
           />
         );
@@ -219,75 +211,45 @@ function App() {
     return cells;
   };
   
-  // Render start screen
-  const renderStartScreen = () => (
-    <div className="nokia-screen start-screen">
-      <div className="nokia-text">SNAKE</div>
-      <div className="nokia-subtitle">SELECT DIFFICULTY</div>
-      <button 
-        className="nokia-button" 
-        onClick={() => startGame(SPEED_LEVELS.BASIC)}
-      >
-        BASIC
-      </button>
-      <button 
-        className="nokia-button" 
-        onClick={() => startGame(SPEED_LEVELS.MODERATE)}
-      >
-        MODERATE
-      </button>
-      <button 
-        className="nokia-button" 
-        onClick={() => startGame(SPEED_LEVELS.ADVANCED)}
-      >
-        ADVANCED
-      </button>
-    </div>
-  );
-  
-  // Render game over screen
-  const renderGameOverScreen = () => (
-    <div className="nokia-screen game-over">
-      <div className="nokia-text">GAME OVER</div>
-      <div className="nokia-score">SCORE: {score}</div>
-      <button 
-        className="nokia-button" 
-        onClick={() => startGame(gameSpeed)}
-      >
-        PLAY AGAIN
-      </button>
-      <button 
-        className="nokia-button" 
-        onClick={() => setGameStarted(false)}
-      >
-        MAIN MENU
-      </button>
-    </div>
-  );
-  
-  // Render game screen
-  const renderGameScreen = () => (
-    <div className="nokia-screen game-screen">
-      <div className={`nokia-score-bar ${scoreAnimation ? 'score-animation' : ''}`}>SCORE: {score}</div>
-      <div 
-        className="nokia-grid"
-        style={{
-          width: GRID_SIZE * CELL_SIZE,
-          height: GRID_SIZE * CELL_SIZE
-        }}
-      >
-        {renderGrid()}
-      </div>
-    </div>
-  );
-
+  // Render game
   return (
-    <div className="nokia-container">
+    <div className="game-container">
       <div className="nokia-phone">
-        <div className="nokia-header">NOKIA</div>
-        {!gameStarted && renderStartScreen()}
-        {gameStarted && !gameOver && renderGameScreen()}
-        {gameStarted && gameOver && renderGameOverScreen()}
+        <div className="nokia-screen">
+          {!gameActive && !gameOver && (
+            <div className="start-screen">
+              <h1>SNAKE</h1>
+              <p>Select Difficulty</p>
+              <button onClick={() => startGame(SPEEDS.EASY)}>Easy</button>
+              <button onClick={() => startGame(SPEEDS.MEDIUM)}>Medium</button>
+              <button onClick={() => startGame(SPEEDS.HARD)}>Hard</button>
+            </div>
+          )}
+          
+          {gameActive && (
+            <div className="game-screen">
+              <div className="score">Score: {score}</div>
+              <div 
+                className="game-board"
+                style={{
+                  width: GRID_SIZE * CELL_SIZE + 'px',
+                  height: GRID_SIZE * CELL_SIZE + 'px'
+                }}
+              >
+                {renderGrid()}
+              </div>
+            </div>
+          )}
+          
+          {gameOver && (
+            <div className="game-over-screen">
+              <h2>GAME OVER</h2>
+              <p>Your score: {score}</p>
+              <button onClick={() => startGame(speed)}>Play Again</button>
+              <button onClick={() => {setGameOver(false)}}>Main Menu</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
