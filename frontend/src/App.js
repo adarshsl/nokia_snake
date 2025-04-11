@@ -293,34 +293,50 @@ function App() {
               {/* Mobile Control Buttons */}
               <div className="mobile-controls">
                 <div className="control-row">
-                  <div 
+                  <button 
                     className="control-button"
-                    onClick={() => direction !== DIRECTIONS.DOWN && setDirection(DIRECTIONS.UP)}
+                    onClick={() => {
+                      if (direction !== DIRECTIONS.DOWN) {
+                        setDirection(DIRECTIONS.UP);
+                      }
+                    }}
                   >
                     ↑
-                  </div>
+                  </button>
                 </div>
                 <div className="control-row">
-                  <div 
+                  <button 
                     className="control-button"
-                    onClick={() => direction !== DIRECTIONS.RIGHT && setDirection(DIRECTIONS.LEFT)}
+                    onClick={() => {
+                      if (direction !== DIRECTIONS.RIGHT) {
+                        setDirection(DIRECTIONS.LEFT);
+                      }
+                    }}
                   >
                     ←
-                  </div>
-                  <div 
+                  </button>
+                  <button 
                     className="control-button"
-                    onClick={() => direction !== DIRECTIONS.LEFT && setDirection(DIRECTIONS.RIGHT)}
+                    onClick={() => {
+                      if (direction !== DIRECTIONS.LEFT) {
+                        setDirection(DIRECTIONS.RIGHT);
+                      }
+                    }}
                   >
                     →
-                  </div>
+                  </button>
                 </div>
                 <div className="control-row">
-                  <div 
+                  <button 
                     className="control-button"
-                    onClick={() => direction !== DIRECTIONS.UP && setDirection(DIRECTIONS.DOWN)}
+                    onClick={() => {
+                      if (direction !== DIRECTIONS.UP) {
+                        setDirection(DIRECTIONS.DOWN);
+                      }
+                    }}
                   >
                     ↓
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
