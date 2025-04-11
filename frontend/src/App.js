@@ -119,8 +119,8 @@ function App() {
       }
       
       // 4. Check for self collision
-      // Start from index 0 to check all body parts
-      for (let i = 0; i < snake.length; i++) {
+      // Start from index 1 to check body parts (not the head)
+      for (let i = 1; i < snake.length; i++) {
         if (newHead.x === snake[i].x && newHead.y === snake[i].y) {
           setGameState('GAME_OVER');
           return;
