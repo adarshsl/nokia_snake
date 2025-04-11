@@ -176,44 +176,7 @@ function App() {
     };
   }, [gameActive, direction]);
   
-  // Touch/swipe controls for mobile
-  const handleTouchStart = (e) => {
-    if (!gameActive) return;
-    
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY
-    };
-  };
-  
-  const handleTouchEnd = (e) => {
-    if (!gameActive) return;
-    
-    const touchEnd = {
-      x: e.changedTouches[0].clientX,
-      y: e.changedTouches[0].clientY
-    };
-    
-    const dx = touchEnd.x - touchStartRef.current.x;
-    const dy = touchEnd.y - touchStartRef.current.y;
-    
-    // Determine swipe direction
-    if (Math.abs(dx) > Math.abs(dy)) {
-      // Horizontal swipe
-      if (dx > 0 && direction !== DIRECTIONS.LEFT) {
-        setDirection(DIRECTIONS.RIGHT);
-      } else if (dx < 0 && direction !== DIRECTIONS.RIGHT) {
-        setDirection(DIRECTIONS.LEFT);
-      }
-    } else {
-      // Vertical swipe
-      if (dy > 0 && direction !== DIRECTIONS.UP) {
-        setDirection(DIRECTIONS.DOWN);
-      } else if (dy < 0 && direction !== DIRECTIONS.DOWN) {
-        setDirection(DIRECTIONS.UP);
-      }
-    }
-  };
+
   
   // Render game grid cells
   const renderGrid = () => {
