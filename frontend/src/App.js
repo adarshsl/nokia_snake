@@ -111,9 +111,14 @@ function App() {
           break;
       }
       
-      // Check for collisions
+      // Check for collisions with walls
       const hitWall = head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE;
-      const hitSelf = snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y);
+      
+      // Check for self-collision - must check against all segments except the head
+      // Only check if snake length > 1 to avoid false positives
+      const hitSelf = snake.length > 1 && snake.slice(1).some(segment => 
+        segment.x === head.x && segment.y === head.y
+      );
       
       if (hitWall || hitSelf) {
         setGameState('GAME_OVER');
