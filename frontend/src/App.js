@@ -76,7 +76,9 @@ function App() {
     // If there are available cells, randomly pick one
     if (availableCells.length > 0) {
       const randomIndex = Math.floor(Math.random() * availableCells.length);
-      setFood(availableCells[randomIndex]);
+      const newFood = availableCells[randomIndex];
+      console.log("New food generated at:", newFood);
+      setFood(newFood);
     } else {
       // Game is won! Snake fills the entire grid
       setGameState('GAME_OVER');
