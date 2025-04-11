@@ -177,7 +177,7 @@ function App() {
     gameLoopRef.current = setInterval(moveSnake, speed);
     
     return () => clearInterval(gameLoopRef.current);
-  }, [gameState, direction, snake, food, speed]);
+  }, [gameState, direction, snake, food, speed, score]);
   
   // Keyboard Controls
   useEffect(() => {
