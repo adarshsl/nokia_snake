@@ -22,6 +22,8 @@ function App() {
   const [direction, setDirection] = useState(INITIAL_DIRECTION);
   const [score, setScore] = useState(0);
   const [speed, setSpeed] = useState(INITIAL_SPEED.BASIC);
+  const [lastMovement, setLastMovement] = useState(null);
+  const [scoreAnimation, setScoreAnimation] = useState(false);
   
   // References
   const gameLoopRef = useRef(null);
@@ -33,6 +35,7 @@ function App() {
     setDifficulty(selectedDifficulty);
     setSnake(INITIAL_SNAKE);
     setDirection(INITIAL_DIRECTION);
+    setLastMovement(null);
     setScore(0);
     generateFood();
     setGameState('PLAYING');
@@ -55,146 +58,131 @@ function App() {
 
   // Generate random food position
   const generateFood = () => {
-    // Make sure food is always within grid bounds (0 to GRID_SIZE-1)
-    const min = 0;
-    const max = GRID_SIZE - 1;
+    // Create a list of all possible positions where food can be placed
+    const positions = [];
     
-    // Find all available cells (not occupied by snake)
-    const availableCells = [];
-    const snakeHead = snake[0];
-    
-    for (let y = min; y <= max; y++) {
-      for (let x = min; x <= max; x++) {
-        // Check if this position is not occupied by the snake
+    for (let y = 0; y < GRID_SIZE; y++) {
+      for (let x = 0; x < GRID_SIZE; x++) {
+        // Check if position is not occupied by snake
         const isOccupied = snake.some(segment => segment.x === x && segment.y === y);
-        
         if (!isOccupied) {
-          // Calculate distance from snake head
-          const distance = Math.abs(x - snakeHead.x) + Math.abs(y - snakeHead.y);
-          // Add cell with distance info
-          availableCells.push({ x, y, distance });
+          positions.push({ x, y });
         }
       }
     }
     
-    // If there are available cells, select one
-    if (availableCells.length > 0) {
-      // Sort cells by distance from snake head
-      availableCells.sort((a, b) => a.distance - b.distance);
-      
-      // Get cells that are close but not too close to the head
-      // Exclude the closest few cells to make it not too easy
-      const closeCells = availableCells.slice(3, Math.min(10, availableCells.length));
-      
-      // If we have close cells, pick one randomly, otherwise pick from all cells
-      const cellPool = closeCells.length > 0 ? closeCells : availableCells;
-      const randomIndex = Math.floor(Math.random() * cellPool.length);
-      const newFood = { x: cellPool[randomIndex].x, y: cellPool[randomIndex].y };
-      
-      console.log("New food generated at:", newFood);
+    // Randomly select a position
+    if (positions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * positions.length);
+      const newFood = positions[randomIndex];
       setFood(newFood);
-    } else {
-      // Game is won! Snake fills the entire grid
-      setGameState('GAME_OVER');
     }
   };
-
-  // Additional states
-  const [scoreAnimation, setScoreAnimation] = useState(false);
+  
+  // Move snake
+  const moveSnake = () => {
+    // Create a copy of the current snake
+    const newSnake = [...snake];
+    const head = { ...newSnake[0] };
+    
+    // Move head based on direction
+    switch (direction) {
+      case 'UP':
+        head.y -= 1;
+        break;
+      case 'DOWN':
+        head.y += 1;
+        break;
+      case 'LEFT':
+        head.x -= 1;
+        break;
+      case 'RIGHT':
+        head.x += 1;
+        break;
+      default:
+        break;
+    }
+    
+    // Track last movement
+    setLastMovement(direction);
+    
+    // Check for wall collision
+    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+      setGameState('GAME_OVER');
+      return;
+    }
+    
+    // Check for self collision
+    for (let i = 0; i < newSnake.length; i++) {
+      if (head.x === newSnake[i].x && head.y === newSnake[i].y) {
+        setGameState('GAME_OVER');
+        return;
+      }
+    }
+    
+    // Add new head to the beginning of the snake
+    newSnake.unshift(head);
+    
+    // Check if snake eats food
+    if (head.x === food.x && head.y === food.y) {
+      // Increase score
+      setScore(prevScore => prevScore + 1);
+      setScoreAnimation(true);
+      setTimeout(() => setScoreAnimation(false), 300);
+      
+      // Generate new food
+      setTimeout(() => generateFood(), 10);
+    } else {
+      // Remove tail segment
+      newSnake.pop();
+    }
+    
+    // Update snake
+    setSnake(newSnake);
+  };
   
   // Game Loop
   useEffect(() => {
     if (gameState !== 'PLAYING') return;
     
-    const moveSnake = () => {
-      const head = { ...snake[0] };
-      
-      // Move head based on direction
-      switch (direction) {
-        case 'UP':
-          head.y -= 1;
-          break;
-        case 'DOWN':
-          head.y += 1;
-          break;
-        case 'LEFT':
-          head.x -= 1;
-          break;
-        case 'RIGHT':
-          head.x += 1;
-          break;
-        default:
-          break;
-      }
-      
-      // Check for collisions with walls
-      const hitWall = head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE;
-      
-      // Check for self-collision - must check against all segments except the head
-      // Only check if snake length > 1 to avoid false positives
-      const hitSelf = snake.length > 1 && snake.slice(1).some(segment => 
-        segment.x === head.x && segment.y === head.y
-      );
-      
-      if (hitWall || hitSelf) {
-        setGameState('GAME_OVER');
-        return;
-      }
-      
-      // Check if snake eats food
-      const eating = head.x === food.x && head.y === food.y;
-      console.log("Head:", head, "Food:", food, "Eating:", eating);
-      
-      // Create new snake
-      const newSnake = [head, ...snake];
-      if (!eating) {
-        newSnake.pop(); // Remove tail if not eating
-      } else {
-        console.log("Score before increment:", score);
-        setScore(prevScore => {
-          const newScore = prevScore + 1;
-          console.log("Score after increment:", newScore);
-          return newScore;
-        });
-        setScoreAnimation(true);
-        setTimeout(() => setScoreAnimation(false), 300);
-        generateFood();
-      }
-      
-      setSnake(newSnake);
+    const gameLoop = () => {
+      moveSnake();
     };
     
-    gameLoopRef.current = setInterval(moveSnake, speed);
+    gameLoopRef.current = setInterval(gameLoop, speed);
     
     return () => clearInterval(gameLoopRef.current);
-  }, [snake, direction, food, gameState, speed]);
-
+  }, [gameState, snake, direction, food, speed]);
+  
   // Keyboard Controls
   useEffect(() => {
-    const handleKeyPress = (e) => {
+    const handleKeyDown = (e) => {
       if (gameState !== 'PLAYING') return;
       
       switch (e.key) {
         case 'ArrowUp':
-          if (direction !== 'DOWN') setDirection('UP');
+          if (lastMovement !== 'DOWN') setDirection('UP');
           break;
         case 'ArrowDown':
-          if (direction !== 'UP') setDirection('DOWN');
+          if (lastMovement !== 'UP') setDirection('DOWN');
           break;
         case 'ArrowLeft':
-          if (direction !== 'RIGHT') setDirection('LEFT');
+          if (lastMovement !== 'RIGHT') setDirection('LEFT');
           break;
         case 'ArrowRight':
-          if (direction !== 'LEFT') setDirection('RIGHT');
+          if (lastMovement !== 'LEFT') setDirection('RIGHT');
           break;
         default:
           break;
       }
     };
     
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [direction, gameState]);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [gameState, lastMovement]);
 
   // Touch Controls for Mobile
   const handleTouchStart = (e) => {
@@ -220,16 +208,16 @@ function App() {
     // Determine swipe direction
     if (Math.abs(dx) > Math.abs(dy)) {
       // Horizontal swipe
-      if (dx > 0 && direction !== 'LEFT') {
+      if (dx > 0 && lastMovement !== 'LEFT') {
         setDirection('RIGHT');
-      } else if (dx < 0 && direction !== 'RIGHT') {
+      } else if (dx < 0 && lastMovement !== 'RIGHT') {
         setDirection('LEFT');
       }
     } else {
       // Vertical swipe
-      if (dy > 0 && direction !== 'UP') {
+      if (dy > 0 && lastMovement !== 'UP') {
         setDirection('DOWN');
-      } else if (dy < 0 && direction !== 'DOWN') {
+      } else if (dy < 0 && lastMovement !== 'DOWN') {
         setDirection('UP');
       }
     }
@@ -242,14 +230,17 @@ function App() {
     // Create grid cells
     for (let y = 0; y < GRID_SIZE; y++) {
       for (let x = 0; x < GRID_SIZE; x++) {
-        const isSnake = snake.some(segment => segment.x === x && segment.y === y);
-        const isFood = food.x === x && food.y === y;
-        const isHead = snake[0].x === x && snake[0].y === y;
-        
+        // Create cell element
         let cellClass = "nokia-cell";
+        
+        // Check if cell is part of snake
+        const isSnakePart = snake.some(segment => segment.x === x && segment.y === y);
+        const isHead = snake[0].x === x && snake[0].y === y;
+        const isFood = food.x === x && food.y === y;
+        
         if (isHead) {
           cellClass += " snake-head";
-        } else if (isSnake) {
+        } else if (isSnakePart) {
           cellClass += " snake-body";
         } else if (isFood) {
           cellClass += " food";
