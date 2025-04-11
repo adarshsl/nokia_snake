@@ -76,6 +76,10 @@ function App() {
       // Increase score
       setScore(prevScore => prevScore + 1);
       
+      // Animate score
+      setScoreAnimation(true);
+      setTimeout(() => setScoreAnimation(false), 300);
+      
       // Generate new food
       generateFood();
     } else {
