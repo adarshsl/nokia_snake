@@ -61,6 +61,7 @@ function App() {
     
     // Find all available cells (not occupied by snake)
     const availableCells = [];
+    const snakeHead = snake[0];
     
     for (let y = min; y <= max; y++) {
       for (let x = min; x <= max; x++) {
@@ -68,15 +69,28 @@ function App() {
         const isOccupied = snake.some(segment => segment.x === x && segment.y === y);
         
         if (!isOccupied) {
-          availableCells.push({ x, y });
+          // Calculate distance from snake head
+          const distance = Math.abs(x - snakeHead.x) + Math.abs(y - snakeHead.y);
+          // Add cell with distance info
+          availableCells.push({ x, y, distance });
         }
       }
     }
     
-    // If there are available cells, randomly pick one
+    // If there are available cells, select one
     if (availableCells.length > 0) {
-      const randomIndex = Math.floor(Math.random() * availableCells.length);
-      const newFood = availableCells[randomIndex];
+      // Sort cells by distance from snake head
+      availableCells.sort((a, b) => a.distance - b.distance);
+      
+      // Get cells that are close but not too close to the head
+      // Exclude the closest few cells to make it not too easy
+      const closeCells = availableCells.slice(3, Math.min(10, availableCells.length));
+      
+      // If we have close cells, pick one randomly, otherwise pick from all cells
+      const cellPool = closeCells.length > 0 ? closeCells : availableCells;
+      const randomIndex = Math.floor(Math.random() * cellPool.length);
+      const newFood = { x: cellPool[randomIndex].x, y: cellPool[randomIndex].y };
+      
       console.log("New food generated at:", newFood);
       setFood(newFood);
     } else {
