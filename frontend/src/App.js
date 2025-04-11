@@ -272,8 +272,14 @@ function App() {
           )}
           
           {gameActive && (
-            <div className="game-screen">
-              <div className="score">Score: {score}</div>
+            <div 
+              className="game-screen"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className={`score ${scoreAnimation ? 'score-animated' : ''}`}>
+                Score: {score}
+              </div>
               <div 
                 className="game-board"
                 style={{
