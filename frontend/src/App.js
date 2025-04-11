@@ -131,12 +131,16 @@ function App() {
       const newSnake = [newHead, ...snake];
       
       // 6. Check if snake eats food
+      console.log("Head position:", newHead, "Food position:", food);
       const eating = newHead.x === food.x && newHead.y === food.y;
+      console.log("Eating food?", eating);
       
       if (eating) {
         console.log("FOOD EATEN! At position:", food);
         // Don't remove tail (snake grows)
+        console.log("Score before increment:", score);
         setScore(score + 1);
+        console.log("Score after increment:", score + 1);
         setScoreAnimation(true);
         setTimeout(() => setScoreAnimation(false), 300);
         
